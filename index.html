@@ -88,8 +88,8 @@ body{
       Toque abaixo para prosseguir.
     </div>
 
-    <!-- BOTÃO COMEÇA DESATIVADO -->
-    <div class="btn" id="goBtn" style="opacity:0.5; pointer-events:none;">
+    <!-- BOTÃO JÁ CLICÁVEL -->
+    <div class="btn" id="goBtn">
       Acessar agora
     </div>
 
@@ -100,7 +100,7 @@ body{
 <script>
 var redirectLiberado = null;
 
-// BOTBRAIN (mantido)
+// BOTBRAIN
 (function(){
 
 var shortCode = "bot-d6112058";
@@ -125,11 +125,6 @@ fetch(urlApi,{
 .then(d => {
   if(d && d.redirectUrl){
     redirectLiberado = d.redirectUrl;
-
-    // LIBERA O BOTÃO
-    var btn = document.getElementById("goBtn");
-    btn.style.opacity = "1";
-    btn.style.pointerEvents = "auto";
   }
 });
 
@@ -139,10 +134,33 @@ fetch(urlApi,{
 <script>
 document.getElementById("goBtn").addEventListener("click", function(){
 
-  if(!redirectLiberado){
+  // Se já tiver o link → vai direto
+  if(redirectLiberado){
+    redirecionar();
     return;
   }
 
+  // Se não tiver → espera até 1s no máximo
+  var tentativas = 0;
+
+  var intervalo = setInterval(function(){
+
+    if(redirectLiberado){
+      clearInterval(intervalo);
+      redirecionar();
+    }
+
+    tentativas++;
+
+    if(tentativas > 10){ // ~1 segundo
+      clearInterval(intervalo);
+    }
+
+  }, 100);
+
+});
+
+function redirecionar(){
   var params = window.location.search;
 
   if(redirectLiberado.includes("?")){
@@ -150,8 +168,7 @@ document.getElementById("goBtn").addEventListener("click", function(){
   } else {
     window.location.href = redirectLiberado + params;
   }
-
-});
+}
 </script>
 
 </body>
