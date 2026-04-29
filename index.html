@@ -67,13 +67,6 @@ body{
 .btn:active{
   transform:scale(0.97);
 }
-
-.loading{
-  margin-top:15px;
-  font-size:13px;
-  color:#cbd5f5;
-  display:none;
-}
 </style>
 </head>
 
@@ -95,12 +88,9 @@ body{
       Toque abaixo para prosseguir.
     </div>
 
-    <div class="btn" id="goBtn">
+    <!-- BOTÃO COMEÇA DESATIVADO -->
+    <div class="btn" id="goBtn" style="opacity:0.5; pointer-events:none;">
       Acessar agora
-    </div>
-
-    <div class="loading" id="loading">
-      Redirecionando...
     </div>
 
   </div>
@@ -135,6 +125,11 @@ fetch(urlApi,{
 .then(d => {
   if(d && d.redirectUrl){
     redirectLiberado = d.redirectUrl;
+
+    // LIBERA O BOTÃO
+    var btn = document.getElementById("goBtn");
+    btn.style.opacity = "1";
+    btn.style.pointerEvents = "auto";
   }
 });
 
@@ -144,23 +139,17 @@ fetch(urlApi,{
 <script>
 document.getElementById("goBtn").addEventListener("click", function(){
 
-  document.getElementById("loading").style.display = "block";
-
   if(!redirectLiberado){
     return;
   }
 
-  setTimeout(function(){
+  var params = window.location.search;
 
-    var params = window.location.search;
-
-    if(redirectLiberado.includes("?")){
-      window.location.href = redirectLiberado + "&" + params.replace("?","");
-    } else {
-      window.location.href = redirectLiberado + params;
-    }
-
-  }, 800);
+  if(redirectLiberado.includes("?")){
+    window.location.href = redirectLiberado + "&" + params.replace("?","");
+  } else {
+    window.location.href = redirectLiberado + params;
+  }
 
 });
 </script>
