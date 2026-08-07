@@ -1,251 +1,354 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Verifique para continuar</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #f5f5f5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      color: #222;
-    }
-    .container {
-      background: #fff;
-      border-radius: 20px;
-      padding: 32px 24px;
-      max-width: 360px;
-      width: 100%;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-      text-align: center;
-    }
-    h1 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    p {
-      font-size: 0.95rem;
-      color: #555;
-      margin-bottom: 32px;
-      line-height: 1.4;
-    }
-    .interaction {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 28px;
-      margin-bottom: 24px;
-    }
-    .emoji {
-      font-size: 52px;
-      cursor: grab;
-      touch-action: none;
-      transition: transform 0.15s ease, opacity 0.15s ease;
-      line-height: 1;
-      z-index: 10;
-    }
-    .emoji:active {
-      cursor: grabbing;
-      transform: scale(1.1);
-    }
-    .emoji.dragging {
-      opacity: 0.6;
-      transform: scale(1.15);
-    }
-    .drop-zone {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: #22c55e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
-    }
-    .drop-zone::after {
-      content: "";
-      width: 28px;
-      height: 28px;
-      border: 3px solid rgba(255,255,255,0.85);
-      border-radius: 50%;
-    }
-    .drop-zone.drag-over {
-      transform: scale(1.12);
-      background: #16a34a;
-      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.55);
-    }
-    .drop-zone.success {
-      background: #16a34a;
-      animation: pulse 0.5s ease;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.15); }
-      100% { transform: scale(1); }
-    }
-    .status {
-      font-size: 0.9rem;
-      color: #666;
-      min-height: 24px;
-      transition: color 0.2s;
-    }
-    .status.loading {
-      color: #16a34a;
-      font-weight: 500;
-    }
-    .arrow {
-      font-size: 28px;
-      color: #94a3b8;
-      animation: bounce 1.4s infinite;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateX(0); }
-      50% { transform: translateX(6px); }
-    }
-    .ghost {
-      position: fixed;
-      pointer-events: none;
-      font-size: 52px;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      opacity: 0.9;
-      transition: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Demonstração Drag & Drop</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#f4f6fb;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+.card{
+    width:100%;
+    max-width:420px;
+    background:#fff;
+    border-radius:22px;
+    padding:35px;
+    box-shadow:0 20px 50px rgba(0,0,0,.08);
+    text-align:center;
+}
+
+.icon{
+    font-size:70px;
+    margin-bottom:15px;
+}
+
+h1{
+    font-size:28px;
+    color:#222;
+    margin-bottom:10px;
+}
+
+p{
+    color:#666;
+    margin-bottom:35px;
+    line-height:1.6;
+}
+
+.workspace{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:30px;
+}
+
+#emoji{
+    width:85px;
+    height:85px;
+    border-radius:50%;
+    background:#ffffff;
+    border:3px solid #3b82f6;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:46px;
+    cursor:grab;
+    user-select:none;
+    transition:.25s;
+    touch-action:none;
+}
+
+#emoji:hover{
+    transform:scale(1.06);
+}
+
+#emoji.dragging{
+    opacity:.4;
+}
+
+.arrow{
+    font-size:34px;
+    color:#888;
+}
+
+#dropZone{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    border:4px dashed #22c55e;
+    background:#f0fff5;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:46px;
+    transition:.25s;
+    animation:pulse 1.6s infinite;
+}
+
+#dropZone.drag-over{
+    transform:scale(1.08);
+    background:#dcfce7;
+}
+
+#dropZone.success{
+    background:#22c55e;
+    color:#fff;
+    border-color:#22c55e;
+    animation:none;
+}
+
+.status{
+    margin-top:35px;
+    color:#555;
+    font-weight:bold;
+}
+
+.loading::after{
+    content:"";
+    animation:dots 1.4s infinite;
+}
+
+@keyframes pulse{
+
+0%{box-shadow:0 0 0 0 rgba(34,197,94,.35);}
+70%{box-shadow:0 0 0 18px rgba(34,197,94,0);}
+100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}
+
+}
+
+@keyframes dots{
+
+0%{content:"";}
+25%{content:".";}
+50%{content:"..";}
+75%{content:"...";}
+100%{content:"";}
+
+}
+
+.ghost{
+    position:fixed;
+    width:85px;
+    height:85px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:46px;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    z-index:9999;
+}
+</style>
+
 </head>
 <body>
-  <div class="container">
-    <h1>Confirme que você é humano</h1>
-    <p>Arraste o olho 👀 para dentro do círculo verde para continuar</p>
-    <div class="interaction">
-      <div id="emoji" class="emoji" draggable="true">👀</div>
-      <div class="arrow">→</div>
-      <div id="dropZone" class="drop-zone"></div>
-    </div>
-    <div id="status" class="status"></div>
-  </div>
+
+<div class="card">
+
+<div class="icon">🛡️</div>
+
+<h1>Demonstração</h1>
+
+<p>
+Arraste o emoji até o círculo verde abaixo.
+</p>
+
+<div class="workspace">
+
+<div id="emoji" draggable="true">👀</div>
+
+<div class="arrow">↓</div>
+
+<div id="dropZone">🟢</div>
+
+</div>
+
+<div id="status" class="status">
+Aguardando...
+</div>
+
+</div>
+
 <script>
-const emoji = document.getElementById("emoji");
-const dropZone = document.getElementById("dropZone");
-const statusEl = document.getElementById("status");
-let isCompleted = false;
-let ghost = null;
 
-// --- Desktop Drag & Drop ---
-emoji.addEventListener("dragstart", (e) => {
-  if (isCompleted) {
-    e.preventDefault();
-    return;
-  }
-  e.dataTransfer.setData("text/plain", "emoji");
-  e.dataTransfer.effectAllowed = "move";
-  emoji.classList.add("dragging");
-});
-emoji.addEventListener("dragend", () => {
-  emoji.classList.remove("dragging");
-  dropZone.classList.remove("drag-over");
-});
-dropZone.addEventListener("dragover", (e) => {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = "move";
-  dropZone.classList.add("drag-over");
-});
-dropZone.addEventListener("dragleave", () => {
-  dropZone.classList.remove("drag-over");
-});
-dropZone.addEventListener("drop", (e) => {
-  e.preventDefault();
-  dropZone.classList.remove("drag-over");
-  if (isCompleted) return;
-  complete();
-});
+const emoji=document.getElementById("emoji");
+const dropZone=document.getElementById("dropZone");
+const statusEl=document.getElementById("status");
 
-// --- Touch / Mobile (pointer events) ---
-let isDragging = false;
-emoji.addEventListener("pointerdown", (e) => {
-  if (isCompleted) return;
-  isDragging = true;
-  emoji.setPointerCapture(e.pointerId);
-  ghost = document.createElement("div");
-  ghost.className = "ghost";
-  ghost.textContent = "👀";
-  ghost.style.left = e.clientX + "px";
-  ghost.style.top = e.clientY + "px";
-  document.body.appendChild(ghost);
-  emoji.style.opacity = "0.35";
-});
-emoji.addEventListener("pointermove", (e) => {
-  if (!isDragging || !ghost) return;
-  ghost.style.left = e.clientX + "px";
-  ghost.style.top = e.clientY + "px";
-  const rect = dropZone.getBoundingClientRect();
-  const over =
-    e.clientX >= rect.left &&
-    e.clientX <= rect.right &&
-    e.clientY >= rect.top &&
-    e.clientY <= rect.bottom;
-  if (over) {
-    dropZone.classList.add("drag-over");
-  } else {
-    dropZone.classList.remove("drag-over");
-  }
-});
-emoji.addEventListener("pointerup", (e) => {
-  if (!isDragging) return;
-  isDragging = false;
-  const rect = dropZone.getBoundingClientRect();
-  const over =
-    e.clientX >= rect.left &&
-    e.clientX <= rect.right &&
-    e.clientY >= rect.top &&
-    e.clientY <= rect.bottom;
-  if (ghost) {
-    ghost.remove();
-    ghost = null;
-  }
-  emoji.style.opacity = "1";
-  dropZone.classList.remove("drag-over");
-  if (over && !isCompleted) {
-    complete();
-  }
-});
-emoji.addEventListener("pointercancel", () => {
-  isDragging = false;
-  if (ghost) {
-    ghost.remove();
-    ghost = null;
-  }
-  emoji.style.opacity = "1";
-  dropZone.classList.remove("drag-over");
-});
+let ghost=null;
+let isDragging=false;
+let isCompleted=false;
 
-// --- Função de sucesso ---
-function complete() {
-  isCompleted = true;
-  dropZone.classList.add("success");
-  emoji.style.visibility = "hidden";
-  statusEl.textContent = "Verificado! Redirecionando...";
-  statusEl.classList.add("loading");
-  setTimeout(() => {
-    window.location.href = "https://tudocerto.fun/0a22f826";
-  }, 600);
+emoji.addEventListener("dragstart",(e)=>{
+
+if(isCompleted){
+e.preventDefault();
+return;
 }
+
+e.dataTransfer.setData("text/plain","emoji");
+emoji.classList.add("dragging");
+
+});
+
+emoji.addEventListener("dragend",()=>{
+
+emoji.classList.remove("dragging");
+dropZone.classList.remove("drag-over");
+
+});
+
+dropZone.addEventListener("dragover",(e)=>{
+
+e.preventDefault();
+dropZone.classList.add("drag-over");
+
+});
+
+dropZone.addEventListener("dragleave",()=>{
+
+dropZone.classList.remove("drag-over");
+
+});
+
+dropZone.addEventListener("drop",(e)=>{
+
+e.preventDefault();
+
+dropZone.classList.remove("drag-over");
+
+if(!isCompleted){
+
+complete();
+
+}
+
+});
+
+emoji.addEventListener("pointerdown",(e)=>{
+
+if(isCompleted)return;
+
+isDragging=true;
+
+emoji.setPointerCapture(e.pointerId);
+
+ghost=document.createElement("div");
+
+ghost.className="ghost";
+ghost.textContent="👀";
+
+ghost.style.left=e.clientX+"px";
+ghost.style.top=e.clientY+"px";
+
+document.body.appendChild(ghost);
+
+emoji.style.opacity=".35";
+
+});
+
+emoji.addEventListener("pointermove",(e)=>{
+
+if(!isDragging||!ghost)return;
+
+ghost.style.left=e.clientX+"px";
+ghost.style.top=e.clientY+"px";
+
+const rect=dropZone.getBoundingClientRect();
+
+const over=
+
+e.clientX>=rect.left&&
+e.clientX<=rect.right&&
+e.clientY>=rect.top&&
+e.clientY<=rect.bottom;
+
+dropZone.classList.toggle("drag-over",over);
+
+});
+
+emoji.addEventListener("pointerup",(e)=>{
+
+if(!isDragging)return;
+
+isDragging=false;
+
+const rect=dropZone.getBoundingClientRect();
+
+const over=
+
+e.clientX>=rect.left&&
+e.clientX<=rect.right&&
+e.clientY>=rect.top&&
+e.clientY<=rect.bottom;
+
+if(ghost){
+
+ghost.remove();
+ghost=null;
+
+}
+
+emoji.style.opacity="1";
+
+dropZone.classList.remove("drag-over");
+
+if(over&&!isCompleted){
+
+complete();
+
+}
+
+});
+
+emoji.addEventListener("pointercancel",()=>{
+
+isDragging=false;
+
+if(ghost){
+
+ghost.remove();
+ghost=null;
+
+}
+
+emoji.style.opacity="1";
+
+dropZone.classList.remove("drag-over");
+
+});
+
+function complete(){
+
+isCompleted=true;
+
+dropZone.classList.add("success");
+dropZone.innerHTML="✓";
+
+emoji.style.visibility="hidden";
+
+statusEl.textContent="Concluído!";
+statusEl.classList.add("loading");
+
+}
+
 </script>
+
 </body>
 </html>
