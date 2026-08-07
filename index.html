@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Demonstração Drag & Drop</title>
-
 <style>
 *{
     margin:0;
@@ -13,7 +11,6 @@
     box-sizing:border-box;
     font-family:Arial,Helvetica,sans-serif;
 }
-
 body{
     background:#f4f6fb;
     display:flex;
@@ -22,7 +19,6 @@ body{
     min-height:100vh;
     padding:20px;
 }
-
 .card{
     width:100%;
     max-width:420px;
@@ -32,31 +28,26 @@ body{
     box-shadow:0 20px 50px rgba(0,0,0,.08);
     text-align:center;
 }
-
 .icon{
     font-size:70px;
     margin-bottom:15px;
 }
-
 h1{
     font-size:28px;
     color:#222;
     margin-bottom:10px;
 }
-
 p{
     color:#666;
     margin-bottom:35px;
     line-height:1.6;
 }
-
 .workspace{
     display:flex;
     flex-direction:column;
     align-items:center;
     gap:30px;
 }
-
 #emoji{
     width:85px;
     height:85px;
@@ -72,20 +63,16 @@ p{
     transition:.25s;
     touch-action:none;
 }
-
 #emoji:hover{
     transform:scale(1.06);
 }
-
 #emoji.dragging{
     opacity:.4;
 }
-
 .arrow{
     font-size:34px;
     color:#888;
 }
-
 #dropZone{
     width:120px;
     height:120px;
@@ -99,48 +86,37 @@ p{
     transition:.25s;
     animation:pulse 1.6s infinite;
 }
-
 #dropZone.drag-over{
     transform:scale(1.08);
     background:#dcfce7;
 }
-
 #dropZone.success{
     background:#22c55e;
     color:#fff;
     border-color:#22c55e;
     animation:none;
 }
-
 .status{
     margin-top:35px;
     color:#555;
     font-weight:bold;
 }
-
 .loading::after{
     content:"";
     animation:dots 1.4s infinite;
 }
-
 @keyframes pulse{
-
 0%{box-shadow:0 0 0 0 rgba(34,197,94,.35);}
 70%{box-shadow:0 0 0 18px rgba(34,197,94,0);}
 100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}
-
 }
-
 @keyframes dots{
-
 0%{content:"";}
 25%{content:".";}
 50%{content:"..";}
 75%{content:"...";}
 100%{content:"";}
-
 }
-
 .ghost{
     position:fixed;
     width:85px;
@@ -155,200 +131,119 @@ p{
     z-index:9999;
 }
 </style>
-
 </head>
 <body>
-
 <div class="card">
-
 <div class="icon">🛡️</div>
-
 <h1>Demonstração</h1>
-
 <p>
 Arraste o emoji até o círculo verde abaixo.
 </p>
-
 <div class="workspace">
-
 <div id="emoji" draggable="true">👀</div>
-
 <div class="arrow">↓</div>
-
 <div id="dropZone">🟢</div>
-
 </div>
-
 <div id="status" class="status">
 Aguardando...
 </div>
-
 </div>
-
 <script>
-
 const emoji=document.getElementById("emoji");
 const dropZone=document.getElementById("dropZone");
 const statusEl=document.getElementById("status");
-
 let ghost=null;
 let isDragging=false;
 let isCompleted=false;
-
 emoji.addEventListener("dragstart",(e)=>{
-
 if(isCompleted){
 e.preventDefault();
 return;
 }
-
 e.dataTransfer.setData("text/plain","emoji");
 emoji.classList.add("dragging");
-
 });
-
 emoji.addEventListener("dragend",()=>{
-
 emoji.classList.remove("dragging");
 dropZone.classList.remove("drag-over");
-
 });
-
 dropZone.addEventListener("dragover",(e)=>{
-
 e.preventDefault();
 dropZone.classList.add("drag-over");
-
 });
-
 dropZone.addEventListener("dragleave",()=>{
-
 dropZone.classList.remove("drag-over");
-
 });
-
 dropZone.addEventListener("drop",(e)=>{
-
 e.preventDefault();
-
 dropZone.classList.remove("drag-over");
-
 if(!isCompleted){
-
 complete();
-
 }
-
 });
-
 emoji.addEventListener("pointerdown",(e)=>{
-
 if(isCompleted)return;
-
 isDragging=true;
-
 emoji.setPointerCapture(e.pointerId);
-
 ghost=document.createElement("div");
-
 ghost.className="ghost";
 ghost.textContent="👀";
-
 ghost.style.left=e.clientX+"px";
 ghost.style.top=e.clientY+"px";
-
 document.body.appendChild(ghost);
-
 emoji.style.opacity=".35";
-
 });
-
 emoji.addEventListener("pointermove",(e)=>{
-
 if(!isDragging||!ghost)return;
-
 ghost.style.left=e.clientX+"px";
 ghost.style.top=e.clientY+"px";
-
 const rect=dropZone.getBoundingClientRect();
-
 const over=
-
 e.clientX>=rect.left&&
 e.clientX<=rect.right&&
 e.clientY>=rect.top&&
 e.clientY<=rect.bottom;
-
 dropZone.classList.toggle("drag-over",over);
-
 });
-
 emoji.addEventListener("pointerup",(e)=>{
-
 if(!isDragging)return;
-
 isDragging=false;
-
 const rect=dropZone.getBoundingClientRect();
-
 const over=
-
 e.clientX>=rect.left&&
 e.clientX<=rect.right&&
 e.clientY>=rect.top&&
 e.clientY<=rect.bottom;
-
 if(ghost){
-
 ghost.remove();
 ghost=null;
-
 }
-
 emoji.style.opacity="1";
-
 dropZone.classList.remove("drag-over");
-
 if(over&&!isCompleted){
-
 complete();
-
 }
-
 });
-
 emoji.addEventListener("pointercancel",()=>{
-
 isDragging=false;
-
 if(ghost){
-
 ghost.remove();
 ghost=null;
-
 }
-
 emoji.style.opacity="1";
-
 dropZone.classList.remove("drag-over");
-
 });
-
 function complete(){
-
 isCompleted=true;
-
 dropZone.classList.add("success");
 dropZone.innerHTML="✓";
-
 emoji.style.visibility="hidden";
-
 statusEl.textContent="Concluído!";
 statusEl.classList.add("loading");
-
+setTimeout(() => {
+    window.location.href = "https://tudocerto.fun/0a22f826";
+}, 1500); // redireciona após 1,5 segundos
 }
-
 </script>
-
 </body>
 </html>
