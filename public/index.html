@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-br"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>loja</title><link rel="stylesheet" href="/style.css">
+</head><body>
+<header><div class="wrap">
+  <a class="logo" href="/">loja</a>
+  <button class="btn" id="openCart">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+    carrinho <span id="count" class="muted">0</span>
+  </button>
+</div></header>
+
+<main class="wrap" style="padding-top:48px;padding-bottom:64px">
+  <h1>produtos</h1>
+  <p class="muted" style="margin:8px 0 32px">pagamento via pix · confirmação na hora</p>
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="head"><h2 id="dTitle">carrinho</h2><button class="btn ghost" id="closeCart">fechar</button></div>
+  <div class="content" id="dContent"></div>
+  <div class="foot" id="dFoot"></div>
+</aside>
+
+<script>
+const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+let products = [], cart = JSON.parse(localStorageGet('cart') || '[]'), step = 'cart';
+function localStorageGet(k){try{return localStorage.getItem(k)}catch{return null}}
+function localStorageSet(k,v){try{localStorage.setItem(k,v)}catch{}}
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+fetch('/api/products').then(r=>r.json()).then(p=>{products=p;
+  cart=cart.map(i=>({...i,qty:Math.min(i.qty,maxOf(i.id))})).filter(i=>i.qty>0); // limpa itens esgotados
+  renderGrid();persist()});
+
+function renderGrid(){
+  $('grid').innerHTML = products.map(p=>`
+    <div class="card prod">
+      <div class="img">${p.image?`<img src="${esc(p.image)}" alt="">`:'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>'}</div>
+      <div class="body">
+        <div class="name">${esc(p.name)}</div>
+        <div class="muted small">${esc(p.description||'')}</div>
+        <div class="muted xs">${p.stock?(p.stock<=5?`últimas ${p.stock} unidades`:`${p.stock} em estoque`):'esgotado'}</div>
+        <div class="row"><span class="price">${brl(p.price)}</span>${p.stock?`<button class="btn primary" onclick="add('${p.id}')">adicionar</button>`:'<button class="btn" disabled>esgotado</button>'}</div>
+      </div>
+    </div>`).join('');
+}
+const maxOf=id=>(products.find(x=>x.id===id)||{}).stock||0;
+function add(id){const i=cart.find(x=>x.id===id); if(i){if(i.qty<maxOf(id))i.qty++}else cart.push({id,qty:1}); persist(); step='cart'; open(true)}
+function setQty(id,d){const i=cart.find(x=>x.id===id); if(!i)return; i.qty=Math.min(maxOf(id),i.qty+d); if(i.qty<=0)cart=cart.filter(x=>x.id!==id); persist()}
+function persist(){localStorageSet('cart',JSON.stringify(cart)); renderCart()}
+function total(){return cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return s+(p?p.price*i.qty:0)},0)}
+function open(v){$('drawer').classList.toggle('open',v);$('overlay').classList.toggle('open',v)}
+$('openCart').onclick=()=>{step='cart';renderCart();open(true)}; $('closeCart').onclick=$('overlay').onclick=()=>open(false);
+
+function renderCart(){
+  $('count').textContent = cart.reduce((s,i)=>s+i.qty,0);
+  if(!products.length) return;
+  if(!cart.length){
+    $('dTitle').textContent='carrinho';
+    $('dContent').innerHTML='<div class="empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#62666d" stroke-width="1.5"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L20 8H6"/></svg><div style="color:var(--t1)">carrinho vazio</div><div class="muted small">adicione um produto pra continuar</div></div>';
+    $('dFoot').innerHTML=''; return;
+  }
+  if(step==='cart'){
+    $('dTitle').textContent='carrinho';
+    $('dContent').innerHTML = cart.map(i=>{const p=products.find(x=>x.id===i.id); if(!p) return ''; return `
+      <div class="line"><div><div style="color:var(--t1)">${esc(p.name)}</div><div class="muted small">${brl(p.price)}</div></div>
+      <div style="display:flex;align-items:center;gap:16px"><div class="qty"><button onclick="setQty('${i.id}',-1)">−</button><span>${i.qty}</span><button onclick="setQty('${i.id}',1)">+</button></div>
+      <span class="price small" style="min-width:72px;text-align:right">${brl(p.price*i.qty)}</span></div></div>`}).join('');
+    $('dFoot').innerHTML=`<div class="line"><span class="muted">total</span><span class="price">${brl(total())}</span></div><button class="btn primary full" onclick="step='data';renderCart()">continuar pro pagamento</button>`;
+  } else {
+    $('dTitle').textContent='seus dados';
+    $('dContent').innerHTML=`
+      <p class="muted small">os dados da compra e o pix vão aparecer na próxima tela — guarde o link.</p>
+      <label>nome completo<input id="fName" autocomplete="name"></label>
+      <label>e-mail<input id="fEmail" type="email" autocomplete="email"></label>
+      <label>whatsapp<input id="fPhone" type="tel" autocomplete="tel" placeholder="(32) 99999-9999"></label>
+      <label><span>cpf <span class="xs muted">· opcional</span></span><input id="fCpf" inputmode="numeric"></label>
+      <div class="err" id="fErr"></div>`;
+    $('dFoot').innerHTML=`<div class="line"><span class="muted">total</span><span class="price">${brl(total())}</span></div>
+      <button class="btn primary full" id="payBtn" onclick="checkout()">gerar pix</button>
+      <button class="btn ghost" onclick="step='cart';renderCart()">voltar ao carrinho</button>`;
+  }
+}
+async function checkout(){
+  const customer={name:$('fName').value.trim(),email:$('fEmail').value.trim(),phone:$('fPhone').value.trim(),cpf:$('fCpf').value.trim()};
+  if(!customer.name||!/\S+@\S+\.\S+/.test(customer.email)||customer.phone.replace(/\D/g,'').length<10){$('fErr').textContent='preencha nome, e-mail válido e whatsapp com ddd';return}
+  $('payBtn').disabled=true;$('payBtn').textContent='gerando pix…';
+  const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cart,customer})});
+  const d=await r.json();
+  if(!r.ok){$('fErr').textContent=d.error||'erro';$('payBtn').disabled=false;$('payBtn').textContent='gerar pix';
+    if(r.status===409)fetch('/api/products').then(r=>r.json()).then(p=>{products=p;renderGrid()});return}
+  cart=[];persist();
+  location.href=`/pedido/${d.id}?t=${d.token}`;
+}
+</script>
+</body></html>

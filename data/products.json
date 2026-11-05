@@ -1,0 +1,6 @@
+[
+  { "id": "p1", "name": "produto um", "description": "descrição curta do produto. troque em data/products.json", "price": 49.9, "image": "" },
+  { "id": "p2", "name": "produto dois", "description": "descrição curta do produto. troque em data/products.json", "price": 89.9, "image": "" },
+  { "id": "p3", "name": "produto três", "description": "descrição curta do produto. troque em data/products.json", "price": 129.0, "image": "" },
+  { "id": "p4", "name": "produto quatro", "description": "descrição curta do produto. troque em data/products.json", "price": 19.9, "image": "" }
+]

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-br"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>seu pedido</title><link rel="stylesheet" href="/style.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</head><body>
+<header><div class="wrap"><a class="logo" href="/">loja</a><span class="muted small">pedido seguro</span></div></header>
+
+<main class="wrap" style="padding-top:48px;padding-bottom:64px;max-width:960px">
+  <div id="root"><div class="skel" style="height:32px;width:240px"></div><div class="skel" style="height:240px;margin-top:24px"></div></div>
+</main>
+
+<script>
+const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const id=location.pathname.split('/').pop(), t=new URLSearchParams(location.search).get('t');
+const dt=s=>s?new Date(s).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):'—';
+let last=null;
+
+async function load(){
+  const r=await fetch(`/api/orders/${id}?t=${t}`); const o=await r.json();
+  if(!r.ok){document.getElementById('root').innerHTML=`<div class="empty"><div style="color:var(--t1)">pedido não encontrado</div><div class="muted small">confira o link que você recebeu</div><a class="btn" href="/">voltar à loja</a></div>`;return}
+  const key=o.status+':'+o.deliverables.length;
+  if(last!==key){last=key;render(o)}
+  if(o.status!=='paid'||o.missing) setTimeout(load,o.missing?30000:5000);
+}
+
+function render(o){
+  const paid=o.status==='paid';
+  const qrHtml = o.qr ? `<img src="${o.qr.startsWith('data:')?o.qr:'data:image/png;base64,'+o.qr}" width="200" height="200" alt="qr pix">` : qrSvg(o.pix);
+  document.getElementById('root').innerHTML=`
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <h1>${paid?'pagamento confirmado':'falta só pagar'}</h1>
+    <span class="badge ${paid?'ok':'wait'}"><span class="dot"></span>${paid?'pago':'aguardando pix'}</span>
+  </div>
+  <p class="muted" style="margin:8px 0 32px">pedido <span class="mono" style="color:var(--t2)">#${o.id}</span> · ${dt(o.created_at)}${paid?' · pago em '+dt(o.paid_at):''}</p>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px" class="cols">
+    <div style="display:flex;flex-direction:column;gap:24px">
+      ${paid?deliverHtml(o):''}
+      <div class="card" style="overflow:hidden">
+        <div style="padding:16px"><h2>dados da compra</h2></div>
+        <table><thead><tr><th>produto</th><th class="r">qtd</th><th class="r">unitário</th><th class="r">subtotal</th></tr></thead>
+        <tbody>${o.items.map(i=>`<tr><td style="color:var(--t1)">${esc(i.name)}</td><td class="r">${i.qty}</td><td class="r">${brl(i.price)}</td><td class="r">${brl(i.price*i.qty)}</td></tr>`).join('')}</tbody></table>
+        <div class="line" style="padding:16px"><span class="muted">total</span><span class="price" style="font-size:20px">${brl(o.total)}</span></div>
+      </div>
+      <div class="card" style="padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+        <div><div class="xs muted">nome</div><div style="color:var(--t1)">${esc(o.customer.name)}</div></div>
+        <div><div class="xs muted">e-mail</div><div style="color:var(--t1);overflow-wrap:anywhere">${esc(o.customer.email)}</div></div>
+        <div><div class="xs muted">whatsapp</div><div style="color:var(--t1)">${esc(o.customer.phone)}</div></div>
+        ${o.customer.cpf?`<div><div class="xs muted">cpf</div><div style="color:var(--t1)">${esc(o.customer.cpf)}</div></div>`:''}
+      </div>
+    </div>
+
+    <div class="card" style="padding:24px;display:flex;flex-direction:column;gap:16px;align-self:start;${paid?'border-color:rgba(76,183,130,.3)':''}">
+      ${paid?`
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4cb782" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+        <h2>tudo certo</h2>
+        <p class="muted small">recebemos seu pagamento de ${brl(o.total)}. seus entregáveis estão liberados nesta página — guarde o link, ele é só seu.</p>
+        <button class="btn full" onclick="window.print()">salvar comprovante</button>
+      `:`
+        <h2>pague com pix</h2>
+        <div style="background:#f7f8f8;border-radius:8px;padding:12px;align-self:center;line-height:0">${qrHtml}</div>
+        <label>pix copia e cola<input class="mono" readonly value="${esc(o.pix||'')}" id="pix"></label>
+        <button class="btn primary full" onclick="copyPix(this)">copiar código</button>
+        <p class="muted small">a página atualiza sozinha quando o pagamento cair.</p>
+        ${o.mock?'<button class="btn full" onclick="sim()">simular pagamento (modo teste)</button>':''}
+      `}
+    </div>
+  </div>
+  <style>@media(max-width:760px){.cols{grid-template-columns:1fr!important}}@media print{header,.btn{display:none!important}body{background:#fff;color:#000}}</style>`;
+}
+function deliverHtml(o){
+  const kb=n=>n>1048576?(n/1048576).toFixed(1)+' mb':Math.max(1,Math.round(n/1024))+' kb';
+  const fileI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5Z"/><path d="M14 3v5h5"/></svg>';
+  const dlI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>';
+  return `<div class="card" style="overflow:hidden;border-color:rgba(113,112,255,.3)">
+    <div style="padding:16px"><h2>seus entregáveis</h2><p class="muted small">exclusivos deste pedido · não são enviados pra mais ninguém</p></div>
+    ${o.deliverables.map(d=>`<div class="line" style="padding:12px 16px;border-top:1px solid var(--b1)">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1">
+        <span class="muted">${fileI}</span>
+        <div style="min-width:0;flex:1"><div class="xs muted">${esc(d.product)}</div>
+          ${d.type==='file'?`<div style="color:var(--t1);overflow-wrap:anywhere">${esc(d.filename)} <span class="muted xs">${kb(d.size)}</span></div>`
+            :`<div class="mono" style="color:var(--t1);overflow-wrap:anywhere;white-space:pre-wrap">${esc(d.text)}</div>`}</div></div>
+      ${d.type==='file'?`<a class="btn primary" href="/api/orders/${o.id}/files/${d.id}?t=${t}">${dlI} baixar</a>`
+        :`<button class="btn" onclick="navigator.clipboard.writeText(${esc(JSON.stringify(d.text))});this.textContent='copiado'">copiar</button>`}
+    </div>`).join('')}
+    ${o.missing?`<div style="padding:12px 16px;border-top:1px solid var(--b1);border-left:2px solid var(--warn)" class="small">${o.missing} ${o.missing===1?'item ainda está':'itens ainda estão'} sendo preparado${o.missing===1?'':'s'}. a gente libera aqui nesta página e te avisa no whatsapp.</div>`:''}
+  </div>`;
+}
+function qrSvg(text){if(!text||!window.qrcode)return '<div class="muted small" style="width:200px;height:200px"></div>';const q=qrcode(0,'M');q.addData(text);q.make();return q.createSvgTag({cellSize:4,margin:0}).replace('<svg','<svg width="200" height="200"')}
+function copyPix(b){navigator.clipboard.writeText(document.getElementById('pix').value).then(()=>{b.textContent='copiado'})}
+async function sim(){await fetch(`/api/orders/${id}/simulate`,{method:'POST'});load()}
+load();
+</script>
+</body></html>
