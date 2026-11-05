@@ -1,30 +1,34 @@
-# loja · pix wiinpay
+# loja · pix wiinpay · estoque por unidade
 
-node 18+, zero dependências.
+roda no **netlify**: páginas em `public/`, backend em `netlify/functions/api.mjs`, banco e arquivos no **netlify blobs** (nada fica no git).
 
-## rodar
-```
-cp .env.example .env     # coloque sua WIINPAY_API_KEY e o BASE_URL público
-node server.js
-```
-sem `WIINPAY_API_KEY` a loja roda em **modo teste**: gera pix falso e mostra um botão "simular pagamento".
+## variáveis de ambiente (netlify → site configuration → environment variables)
+| nome | obrigatório | o que é |
+|---|---|---|
+| `WIINPAY_API_KEY` | sim | chave da wiinpay · sem ela o checkout fica desligado |
+| `ADMIN_PASSWORD` | sim | senha do painel `/admin` |
+| `BASE_URL` | não | ex: `https://tudocerto.casa` (usado no webhook · padrão = domínio do acesso) |
+| `RESERVE_MINUTES` | não | quanto tempo a unidade fica reservada num pix não pago (padrão 30) |
+| `MAX_FILE_MB` | não | tamanho máx. de cada arquivo do estoque (padrão 4 · limite das functions) |
+
+depois de criar/alterar variável: **deploys → trigger deploy**.
 
 ## fluxo
-1. cliente monta o carrinho → preenche nome, e-mail, whatsapp (cpf opcional)
-2. servidor cria o pedido e o pix na wiinpay (`POST /payment/create`)
-3. cliente cai em `/pedido/ID?t=TOKEN` com **todos os dados da compra** + qr code + copia e cola
-4. wiinpay chama `BASE_URL/api/webhook/wiinpay` → servidor confirma o status na api (`GET /payment/list/:id`) antes de marcar pago
-5. a página do pedido atualiza sozinha e vira comprovante
+1. cliente monta o carrinho → nome, e-mail, whatsapp (cpf opcional)
+2. a unidade do estoque é **reservada** e o pix é gerado na wiinpay
+3. cliente cai em `/pedido/ID?t=TOKEN` com os dados da compra + qr + copia e cola
+4. wiinpay chama `/api/webhook/wiinpay` → o servidor confirma na api antes de marcar pago
+5. pago → a unidade vira **entregue** e aparece só na página daquele pedido (download protegido pelo token)
 
-## onde mexer
-- produtos, estoque e pedidos: pelo painel `/admin` (`data/products.json` é só o catálogo inicial de exemplo)
-- webhook precisa de url pública (vps, railway, render…) — localhost não recebe
+## admin (`/admin`)
+- crie o produto e suba o estoque: **1 arquivo = 1 unidade** ou **1 linha de texto = 1 unidade**
+- cada unidade vai pra um único cliente · a loja mostra o estoque e bloqueia quando esgota
+- reserva não paga volta pro estoque sozinha
+- pagou sem estoque (reserva expirou e acabou)? aparece como "pago sem estoque"; a próxima unidade que você subir vai pra ele
+- trava otimista no banco: duas compras simultâneas nunca levam a mesma unidade
 
-## admin · estoque
-- acesse `/admin` · senha em `ADMIN_PASSWORD` (no modo teste é `admin`)
-- crie o produto e suba o estoque: **1 arquivo = 1 unidade** ou **1 linha de texto = 1 unidade** (login, chave, link…)
-- a loja mostra quantas unidades restam e bloqueia quando esgota
-- no checkout as unidades ficam **reservadas** por `RESERVE_MINUTES` (padrão 30) · não pagou, voltam pro estoque
-- pagou → a unidade vira **entregue** e aparece só na página daquele pedido (download protegido pelo token do pedido)
-- se alguém pagar depois do estoque acabar, o admin mostra "pago sem estoque"; ao subir unidades novas, elas vão primeiro pra esse pedido
-- arquivos ficam em `data/files/` (fora da pasta pública) · banco em `data/db.json` — faça backup dessa pasta
+## rodar local
+```
+npm install
+node server.mjs      # modo teste: pix simulado, senha do admin = admin
+```

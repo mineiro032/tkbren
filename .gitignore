@@ -1,7 +1,5 @@
 node_modules/
 .env
-data/db.json
-data/db.json.tmp
-data/files/
+data/
+.netlify/
 .DS_Store
-!data/files/.gitkeep

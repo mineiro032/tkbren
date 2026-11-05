@@ -55,7 +55,7 @@ async function api(path,opt={}){
   if(r.status===401&&path!=='/login'){renderLogin();throw new Error('auth')}
   const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||'erro'); return d;
 }
-let flash='';
+let flash='', maxMB=4;
 
 // ---------- login ----------
 function renderLogin(){
@@ -81,10 +81,11 @@ function msg(){if(!flash)return'';const f=flash;flash='';return `<div class="toa
 // ---------- produtos ----------
 async function viewProducts(){
   shell('p','<div class="skel" style="height:400px"></div>');
-  const [s,ps]=await Promise.all([api('/summary'),api('/products')]);
+  const [s,ps]=await Promise.all([api('/summary'),api('/products')]); maxMB=s.max_file_mb||4;
   $('main').innerHTML=`
   <div class="top"><h1 style="font-size:24px;letter-spacing:-.24px">produtos</h1><button class="btn primary" onclick="location.hash='#/produtos/novo'">novo produto</button></div>
-  ${s.mock?'<div class="toast" style="border-left-color:var(--warn);margin:0 0 24px">modo teste · sem WIINPAY_API_KEY os pix são simulados</div>':''}
+  ${s.mock?'<div class="toast" style="border-left-color:var(--warn);margin:0 0 24px">modo teste · os pix são simulados</div>':''}
+  ${!s.payments?'<div class="toast bad" style="margin:0 0 24px">pagamento desligado · configure WIINPAY_API_KEY nas variáveis de ambiente do netlify pra loja vender</div>':''}
   <div class="kpis">
     <div class="card kpi"><div class="xs muted">faturamento</div><div class="v">${brl(s.revenue)}</div></div>
     <div class="card kpi"><div class="xs muted">pedidos pagos</div><div class="v">${s.paid}</div></div>
@@ -103,6 +104,7 @@ let tab='file', unitFilter='all';
 async function viewProduct(id){
   shell('p','<div class="skel" style="height:400px"></div>');
   const isNew=id==='novo';
+  api('/summary').then(s=>maxMB=s.max_file_mb||4).catch(()=>{});
   const d=isNew?{product:{name:'',description:'',price:'',image:'',active:true,stock:0,reserved:0,sold:0},units:[]}:await api('/products/'+id);
   const p=d.product, units=d.units.filter(u=>unitFilter==='all'||u.status===unitFilter);
   const badge=s=>({available:'<span class="badge ok"><span class="dot"></span>disponível</span>',reserved:'<span class="badge wait"><span class="dot"></span>reservado</span>',delivered:'<span class="badge brand">entregue</span>'})[s];
@@ -118,7 +120,7 @@ async function viewProduct(id){
         <div class="tabs"><button class="tab ${tab==='file'?'on':''}" onclick="tab='file';viewProduct('${id}')">subir arquivos</button><button class="tab ${tab==='text'?'on':''}" onclick="tab='text';viewProduct('${id}')">colar textos</button></div>
         <div style="padding:16px">
         ${tab==='file'?`
-          <label class="drop" id="drop">${I.up}<div style="color:var(--t1)">arraste os arquivos aqui ou clique</div><div class="muted small">1 arquivo = 1 unidade de estoque · pdf, docx, zip, imagem… até 25 mb cada</div>
+          <label class="drop" id="drop">${I.up}<div style="color:var(--t1)">arraste os arquivos aqui ou clique</div><div class="muted small">1 arquivo = 1 unidade de estoque · pdf, docx, zip, imagem… até ${maxMB} mb cada</div>
           <input type="file" multiple id="files" style="display:none"></label>`:`
           <textarea id="texts" placeholder="uma unidade por linha&#10;ex: login:senha, chave de ativação, link único…"></textarea>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span class="muted small" id="tcount">0 unidades</span><button class="btn primary" onclick="addTexts('${id}')">adicionar ao estoque</button></div>`}
@@ -159,7 +161,7 @@ const b64=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.re
 async function upload(id,list){
   const files=[...list]; let done=0;
   for(const f of files){
-    if(f.size>25*1048576){flash='!'+f.name+' passou de 25 mb';continue}
+    if(f.size>maxMB*1048576){flash='!'+f.name+' passou de '+maxMB+' mb';continue}
     $('upmsg').textContent=`enviando ${done+1} de ${files.length}…`;
     await api('/products/'+id+'/stock',{method:'POST',body:{files:[{name:f.name,mime:f.type,data:await b64(f)}]}}); done++;
   }
